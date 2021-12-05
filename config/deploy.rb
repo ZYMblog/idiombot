@@ -1,9 +1,9 @@
 require 'mina/rails'
 require 'mina/git'
 require 'mina/puma'
-require 'mina/rbenv'  # ruby版本控制用rbenv，rvm的话还要设置gemset
+# require 'mina/rbenv'  # ruby版本控制用rbenv，rvm的话还要设置gemset
 # require 'mina/rbenv'  # for rbenv support. (https://rbenv.org)
-# require 'mina/rvm'    # for rvm support. (https://rvm.io)
+require 'mina/rvm'    # for rvm support. (https://rvm.io)
 
 # Basic settings:
 #   domain       - The hostname to SSH to.
@@ -37,10 +37,10 @@ set :shared_files, fetch(:shared_files, []).push('config/database.yml', 'config/
 task :remote_environment do
   # If you're using rbenv, use this to load the rbenv environment.
   # Be sure to commit your .ruby-version or .rbenv-version to your repository.
-  invoke :'rbenv:load'
+  # invoke :'rbenv:load'
 
   # For those using RVM, use this to load an RVM version@gemset.
-  # invoke :'rvm:use', 'ruby-2.5.3@default'
+  invoke :'rvm:use', 'ruby-2.7.2@default'
 end
 
 # Put any custom commands you need to run at setup
