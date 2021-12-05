@@ -62,3 +62,4 @@ gem 'jquery-rails'
 gem 'mina'      #当前版本为1.2.3
 gem 'mina-puma', require: false
 gem 'therubyracer'
+gem 'libv8'
