@@ -58,3 +58,6 @@ gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
 # Use jquery as th JavaScript library
 gem 'jquery-rails'
+
+gem 'mina'      #当前版本为1.2.3
+gem 'mina-puma', require: false
