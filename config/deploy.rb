@@ -12,7 +12,7 @@ require 'mina/rvm'    # for rvm support. (https://rvm.io)
 #   branch       - Branch name to deploy. (needed by mina/git)
 
 set :application_name, 'Idiombot'
-set :domain, 'deployer@119.3.248.121'
+set :domain, 'deployer@120.46.147.189'
 set :deploy_to, '/home/deployer/'
 set :repository, 'git@github.com:ZYMblog/idiombot.git'
 set :branch, 'master'
