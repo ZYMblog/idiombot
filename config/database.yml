@@ -27,6 +27,6 @@ production:
   <<: *default
   host: 127.0.0.1
   database: idiombot_production
-  username: idiombot
+  username: deployer
   # password:
-  password: Zym1128.
+  password: 111111
