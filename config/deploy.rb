@@ -1,82 +1,92 @@
-require 'mina/rails'
-require 'mina/git'
-require 'mina/puma'
-# require 'mina/rbenv'  # ruby版本控制用rbenv，rvm的话还要设置gemset
-# require 'mina/rbenv'  # for rbenv support. (https://rbenv.org)
-require 'mina/rvm'    # for rvm support. (https://rvm.io)
+# Change these
+# server '[PRODUCTION_IP]', port: 22, roles: [:web, :app, :db], primary: true
+server '120.46.147.189', port: 22, roles: [:web, :app, :db], primary: true
 
-# Basic settings:
-#   domain       - The hostname to SSH to.
-#   deploy_to    - Path to deploy into.
-#   repository   - Git repo to clone from. (needed by mina/git)
-#   branch       - Branch name to deploy. (needed by mina/git)
+# set :repo_url,        '[YOUR GIT SSH ADDRESS: git@example.com:username/appname.git]'
+# set :application,     '[APP_NAME]'
+set :repo_url,        "git@github.com:ZYMblog/idiombot.git"
+set :application      "idiombot-app"
 
-set :application_name, 'Idiombot'
-set :domain, 'deployer@120.46.147.189'
-set :deploy_to, '/home/deployer/'
-set :repository, 'git@github.com:ZYMblog/idiombot.git'
-set :branch, 'master'
+# If using Digital Ocean's Ruby on Rails Marketplace framework, your username is 'rails'
+# set :user,            '[USER_NAME]'
+set :user,            'idiombot'
+set :puma_threads,    [4, 16]
+set :puma_workers,    0
 
-set :forward_agent, true     #使用本地的`SSH秘钥`去服务器执行`git pull`，这样`Git`上就不用设置`部署公钥`
-#如果rails是5.2以上版本，就把下面的secrets.yml改成master.key
-set :shared_files, fetch(:shared_files, []).push('config/database.yml', 'config/secrets.yml')
+# Don't change these unless you know what you're doing
+set :pty,             true
+set :use_sudo,        false
+set :stage,           :production
+set :deploy_via,      :remote_cache
+set :deploy_to,       "/home/#{fetch(:user)}/apps/#{fetch(:application)}"
+set :puma_bind,       "unix://#{shared_path}/tmp/sockets/#{fetch(:application)}-puma.sock"
+set :puma_state,      "#{shared_path}/tmp/pids/puma.state"
+set :puma_pid,        "#{shared_path}/tmp/pids/puma.pid"
+set :puma_access_log, "#{release_path}/log/puma.access.log"
+set :puma_error_log,  "#{release_path}/log/puma.error.log"
+set :ssh_options,     { forward_agent: true, user: fetch(:user), keys: %w(~/.ssh/id_rsa.pub) }
+set :puma_preload_app, true
+set :puma_worker_timeout, nil
+set :puma_init_active_record, true  # Change to false when not using ActiveRecord
 
-# Optional settings:
-#   set :user, 'foobar'          # Username in the server to SSH to.
-#   set :port, '30000'           # SSH port number.
-#   set :forward_agent, true     # SSH forward_agent.
+## Defaults:
+# set :scm,           :git
+# set :branch,        :main
+# set :format,        :pretty
+# set :log_level,     :debug
+# set :keep_releases, 5
 
-# Shared dirs and files will be symlinked into the app-folder by the 'deploy:link_shared_paths' step.
-# Some plugins already add folders to shared_dirs like `mina/rails` add `public/assets`, `vendor/bundle` and many more
-# run `mina -d` to see all folders and files already included in `shared_dirs` and `shared_files`
-# set :shared_dirs, fetch(:shared_dirs, []).push('public/assets')
-# set :shared_files, fetch(:shared_files, []).push('config/database.yml', 'config/secrets.yml')
+## Linked Files & Directories (Default None):
+# set :linked_files, %w{config/database.yml}
+# set :linked_dirs,  %w{bin log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}
 
-# This task is the environment that is loaded for all remote run commands, such as
-# `mina deploy` or `mina rake`.
-task :remote_environment do
-  # If you're using rbenv, use this to load the rbenv environment.
-  # Be sure to commit your .ruby-version or .rbenv-version to your repository.
-  # invoke :'rbenv:load'
+namespace :puma do
+  desc 'Create Directories for Puma Pids and Socket'
+  task :make_dirs do
+    on roles(:app) do
+      execute "mkdir #{shared_path}/tmp/sockets -p"
+      execute "mkdir #{shared_path}/tmp/pids -p"
+    end
+  end
 
-  # For those using RVM, use this to load an RVM version@gemset.
-  invoke :'rvm:use', 'ruby-2.7.2@default'
+  before 'deploy:starting', 'puma:make_dirs'
 end
 
-# Put any custom commands you need to run at setup
-# All paths in `shared_dirs` and `shared_paths` will be created on their own.
-task :setup do
-  # command %{rbenv install 2.5.3 --skip-existing}
-  # command %{rvm install ruby-2.5.3}
-  # command %{gem install bundler}
-end
+namespace :deploy do
+  desc "Make sure local git is in sync with remote."
+  task :check_revision do
+    on roles(:app) do
 
-desc "Deploys the current version to the server."
-task :deploy do
-  # uncomment this line to make sure you pushed your local branch to the remote origin
-  # invoke :'git:ensure_pushed'
-  deploy do
-    # Put things that will set up an empty directory into a fully set-up
-    # instance of your project.
-    invoke :'git:clone'
-    invoke :'deploy:link_shared_paths'
-    invoke :'bundle:install'
-    invoke :'rails:db_migrate'
-    invoke :'rails:assets_precompile'
-    invoke :'deploy:cleanup'
-
-    on :launch do
-      in_path(fetch(:current_path)) do
-        command %{mkdir -p tmp/}
-        command %{touch tmp/restart.txt}
+      # Update this to your branch name: master, main, etc. Here it's main
+      unless `git rev-parse HEAD` == `git rev-parse origin/main`
+        puts "WARNING: HEAD is not the same as origin/main"
+        puts "Run `git push` to sync changes."
+        exit
       end
     end
   end
 
-  # you can use `run :local` to run tasks on local machine before of after the deploy scripts
-  # run(:local){ say 'done' }
+  desc 'Initial Deploy'
+  task :initial do
+    on roles(:app) do
+      before 'deploy:restart', 'puma:start'
+      invoke 'deploy'
+    end
+  end
+
+  desc 'Restart application'
+    task :restart do
+      on roles(:app), in: :sequence, wait: 5 do
+        invoke 'puma:restart'
+      end
+  end
+
+  before :starting,     :check_revision
+  after  :finishing,    :compile_assets
+  after  :finishing,    :cleanup
+  # after  :finishing,    :restart
 end
 
-# For help in making your deploy script, see the Mina documentation:
-#
-#  - https://github.com/mina-deploy/mina/tree/master/docs
+# ps aux | grep puma    # Get puma pid
+# kill -s SIGUSR2 pid   # Restart puma
+# kill -s SIGTERM pid   # Stop puma
