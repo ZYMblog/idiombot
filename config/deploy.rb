@@ -4,12 +4,12 @@ server '120.46.147.189', port: 22, roles: [:web, :app, :db], primary: true
 
 # set :repo_url,        '[YOUR GIT SSH ADDRESS: git@example.com:username/appname.git]'
 # set :application,     '[APP_NAME]'
-set :repo_url,        "git@github.com:ZYMblog/idiombot.git"
-set :application      "idiombot-app"
+set :repo_url,        'git@github.com:ZYMblog/idiombot.git'
+set :application,     'idiombot-app'
 
 # If using Digital Ocean's Ruby on Rails Marketplace framework, your username is 'rails'
 # set :user,            '[USER_NAME]'
-set :user,            'idiombot'
+set :user,            'deployer'
 set :puma_threads,    [4, 16]
 set :puma_workers,    0
 
@@ -58,8 +58,8 @@ namespace :deploy do
     on roles(:app) do
 
       # Update this to your branch name: master, main, etc. Here it's main
-      unless `git rev-parse HEAD` == `git rev-parse origin/main`
-        puts "WARNING: HEAD is not the same as origin/main"
+      unless `git rev-parse HEAD` == `git rev-parse origin/master`
+        puts "WARNING: HEAD is not the same as origin/master"
         puts "Run `git push` to sync changes."
         exit
       end
