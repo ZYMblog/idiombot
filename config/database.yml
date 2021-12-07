@@ -25,7 +25,8 @@ test:
 
 production:
   <<: *default
-  host: 127.0.0.1
+  adapter:mysql2
+  host: localhost
   database: idiombot_production
   username: deployer
   # password:
