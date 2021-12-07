@@ -24,8 +24,8 @@ test:
   database: idiombot_test
 
 production:
-  <<: *default
-  adapter:mysql2
+  adapter: mysql2
+  encoding: utf8
   host: localhost
   database: idiombot_production
   username: deployer
