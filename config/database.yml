@@ -25,7 +25,7 @@ test:
 
 production:
   <<: *default
-  host: 127.0.0.1
+  host: 120.46.147.189
   database: idiombot_production
   username: deployer
   # password:
