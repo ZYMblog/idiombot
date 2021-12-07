@@ -8,8 +8,8 @@ class UsersController < ApplicationController
     def create
         @user = User.new(params.require(:user).permit(:username, :password, :email))
         if @user.save
-            if @user.username == "lita"
-                flash[:notice] = "lita是机器人，请换个名字"
+            if @user.username == "Lita"
+                flash[:notice] = "Lita是机器人，请换个名字"
                 render action: :new
             else
                 flash[:notice] = "注册成功，请登录"

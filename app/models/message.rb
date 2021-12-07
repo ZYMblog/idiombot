@@ -11,18 +11,19 @@ class Message < ApplicationRecord
   end
 
   def broadcast_and_lita_auto_reply
-    lita = User.find_by(username: 'lita')
+    lita = User.find_by(username: 'Lita')
     if self.user != lita
       ActionCable.server.broadcast('messages', message: self.content, user: self.user.username)
       sleep 1
       cy = Idiom.find_by(name: self.content)
       # ActionCable.server.broadcast('messages', message: self.content, user: self.user.username)
       if cy.present?
+        # contents = Idiom.where('name like ?', "#{cy.name[-1]}%").pluck(:name).sample(5)
         contents = Idiom.where('name like ?', "#{cy.name[-1]}%").pluck(:name).sample(5)
         content = contents.map do |word|
           "<a href='https://www.zdic.net/hans/#{word}' target='_blank'>#{word}</a>"
-        end.join(' ')
-        content = content.present? ? content : "无#{cy.name[-1]}开头的成语"
+        end.join('    ')
+        content = content.present? ? content : "Sorry, 无'#{cy.name[-1]}'字开头的成语"
       else
         content = '请输入成语'
       end

@@ -4,7 +4,7 @@ class SessionsController < ApplicationController
     end
 
     def create
-        @lita = User.find_or_create_by(username:"lita", password:"000", email:"lita@lita.com")
+        @lita = User.find_or_create_by(username:"Lita", password:"000000", email:"lita@lita.com")
         @user = User.find_by(username:params[:username],password:params[:password])
         @first_user = User.find_by(username:params[:username])
         unless @first_user
@@ -13,8 +13,8 @@ class SessionsController < ApplicationController
             redirect_to register_path
         else
             if @user
-                if @user.username == "lita"
-                    flash[:notice] = "lita是机器人，请重新输入"
+                if @user.username == "Lita"
+                    flash[:notice] = "Lita是机器人，请重新输入"
                     redirect_to root_path
                 else
                     session[:user_id] = @user.id

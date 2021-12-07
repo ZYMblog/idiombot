@@ -12,7 +12,7 @@ class ApplicationController < ActionController::Base
   end
 
   def lita
-    User.find_or_create_by(username: 'lita')
+    User.find_or_create_by(username: 'Lita')
   end
 
 
